@@ -519,9 +519,22 @@ function to_print($node){
         return definitions($node->op).str(to_print($node->ap));
     }
     else if($node->op==Constants::ASSIGN){
-        return str(to_print($node->left)).definitions($node->op).str(to_print($node->right));
+        return str(to_print($node->left))." ".definitions($node->op)." ".str(to_print($node->right));
+    }
+    else if($node->op == Constants::SEMI){
+        return str(to_print($node->left))." ".definitions($node->op)." ".str(to_print($node->right));
+    }
+    else if($node->op == Constants::WHILE){
+        return "while ".str(to_print($node->condition))." do { ".str(to_print($node->while_true)." }");
+    }
+    else if($node->op == Constants::IF){
+        return  "if ".str(to_print($node->condition))." then { ".str(to_print($node->if_true))." }";
+    }
+    else{
+        throw new Exception('Invalid syntax');
     }
 }
+
 
 
 
