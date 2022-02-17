@@ -343,6 +343,88 @@ class While_condition extends AST{
     }
 }
 
+class Parser{
+    public $lexer;
+    public $state;
+    public $current_token;
+    function __construct(lexer){
+        $this->lexer=$lexer;
+        $this->state=$lexer->state;
+        $this->current_token=$lexer->get_next_token();
+    }
+    function error() {
+        throw new Exception('Invalid syntax');
+    }
+    function factor(){
+        public $token = $this->current_token;
+        public $node;
+        if($token->type==Constants::MINUS){
+            $this->current_token = $this->lexer->get_next_token();
+            $token=$this->current_token;
+            $token->value= -1*token->value;
+            $node= new Num($token);
+        }
+        else if($token->type==Constants::INTEGER){
+            $node= new Num($token);
+        }
+        else if($token->type==Constants::ID){
+            $node=new Variable(token);
+        }
+        else if($token->type==Constants::NOT){
+            $this->current_token=$this->lexer->get_next_token();
+            if($this.current_token==Constants::LPAREN){
+                $this->current_token=$this->lexer->get_next_token();
+                $node=$this->boolean_expression();
+            }
+            else if($this->current_token->type==Constants::TRUE || $this->current_token->type==Constants::FALSE){
+                $node=new Boolean(token);
+            }
+            else{
+                $this->error();
+            }
+            $node=new Not(node);
+        }
+        else if($token->type==Constants::TRUE || $token->type==Constants::FALSE){
+            $node=new Boolean(token);
+        }
+        else if($token->type==Constants::LPAREN){
+            $this->current_token=$this->lexer->get_next_token();
+            $node=$this->boolean_expression();
+        }
+        else if($token->type==Constants::RPAREN){
+            $this->current_token=$this->lexer->get_next_token();
+        }
+        else if($token->type==Constants::LBRACE){
+            $this->current_token=$this->lexer->get_next_token();
+            $node=$this->statement_expression();
+        }
+        else if($token->type==Constants::SKIP){
+            $node=new Skip(token);
+        }
+        else if($token->type==Constants::While){
+            $this->current_token=$this->lexer->get_next_token();
+            $condition=$this->boolean_expression();
+            $while_false=new Skip(new Token('skip','skip'));
+            if($this->current_token->type==Constants::DO){
+                $this->current_token=$this->lexer->get_next_token();
+                if($this->current_token==Constants::LBRACE){
+                    $while_true=$this->statement_expression();
+                }
+                else{
+                    $while_true=$this->statement_term();
+                }
+            }
+            return new While($condition,$while_true,$while_false);
+        }
+
+
+
+
+
+    }
+
+}
+
 // echo get($Reserved_Keywords['if'],'nope')->toprint();
 // $foo= new Token("asd","adda");
 // $foo->toprint();
