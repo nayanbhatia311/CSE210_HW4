@@ -416,11 +416,61 @@ class Parser{
             }
             return new While($condition,$while_true,$while_false);
         }
+        else if($token->type==Constants::IF){
+            $this->current_token=$this->lexer->get_next_token();
+            $condition=$this->boolean_expression();
+            if($this->current_token->type==Constants::THEN){
+                $this->current_token=$this->lexer->get_next_token();
+                $if_true=$this->statement_expression();
+            }
+            if($this->current_token->type==Constants::ELSE){
+                $this->current_token=$this->lexer->get_next_token();
+                $if_false=$this->statement_expression();
+            }
+            return new If_condition($condition,$if_true,$if_false);
 
+        }
 
+        else {
+            $this->syntax_error();
+        }
 
+        $this->current_token=$this->lexer->get_next_token();
+        return $node;
+    }
 
+    function arith_term(){
+        $node=$this->factor();
+        while($this->current_token->type==Constants::MUL){
+            $type_name=$this->current_token->Type;
+            $this->current_token=$this->lexer->get_next_token();
+            $node=new BinOp($node,$this->factor(),$type_name);
+        }
+        return $node;
+    }
 
+    function arith_expression(){
+        $node=$this->arith_term();
+        while($this->current_token->type==Constants::PLUS || $this->current_token->type==Constants::MINUS){
+            $type_name=$this->current_token->type;
+            $this->current_token=$this->lexer->get_next_token();
+            $node= new BinOp(node,$this->arith_term(),type_name);
+        }
+        return $node;
+    }
+
+    function arith_parse(){
+        return $this->arith_expression();
+    }
+
+    function boolean_term(){
+        $node=$this->arith_expression();
+        if($this->current_token->type==Constants::EQUAL || $this->current_token==Constants::LESSTHAN){
+            $type_name=$this->current_token->type;
+            $this->current_token=$this->lexer->get_next_token();
+            $node=new BoolOp($node,$this->arith_expression);
+        }
+        return node;
     }
 
 }
