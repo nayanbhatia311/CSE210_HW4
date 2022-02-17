@@ -498,10 +498,32 @@ class Parser{
     function statement_parse(){
         return $this->statement_expression();
     }
-
-
-
 }
+
+function dictionary($var,$val){
+    $dict[$var]=[$val];
+    return $dict;
+}
+
+function to_print($node){
+    if($node->op == Constants::INTEGER || $node->op == Constants::ID || $node->op == Constants::SKIP){
+        return $node->value;
+    }
+    else if($node->op == Constants::TRUE || $node->op == Constants::FALSE){
+        return strtolower(str($node->val));
+    }
+    else if($node->op==Constants::PLUS || $node->op==Constants::MINUS || $node->op==Constants::MUL || $node->op ==Constants:: EQUAL || $node->op==Constants::LESSTHAN || $node->op==Constants::AND || $node->op==Constants::OR){
+        return "(".str(to_print($node->left)).definitions($node->op).str(to_print($node->right)).")";
+    }
+    else if($node->op==Constants::NOT){
+        return definitions($node->op).str(to_print($node->ap));
+    }
+    else if($node->op==Constants::ASSIGN){
+        return str(to_print($node->left)).definitions($node->op).str(to_print($node->right));
+    }
+}
+
+
 
 // echo get($Reserved_Keywords['if'],'nope')->toprint();
 // $foo= new Token("asd","adda");
