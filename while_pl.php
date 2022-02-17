@@ -1,7 +1,7 @@
 <?php
 class Constants{
-
-    const "INTEGER" = "INTEGER";
+   
+    const INTEGER = "INTEGER";
     const PLUS = "PLUS";
     const MINUS = "MINUS";
     const MUL = "MUL";
@@ -28,16 +28,25 @@ class Constants{
     const TRUE = "TRUE";
     const FALSE = "FALSE";
     const SKIP = "SKIP";
-
-    public static function getMinValue(){
-        return self::WHILE;
-  }
-
-    
 }
 
-$min = Constants::WHILE;
 
-echo $min;
+
+class Token{
+    public $type;
+    public $value;
+    function __construct($type, $value) {
+        $this->type=$type;
+        $this->value=$value;
+    }
+
+    public function toprint() {
+        echo "Token(".$this->type.",".$this->value.")";
+    }
+}
+// $foo= new Token("asd","adda");
+// $foo->toprint();
+
+
 
 ?>
