@@ -205,6 +205,144 @@ class Lexer {
     }
 
 }
+
+class AST{
+
+}
+
+class BinOp extends AST{
+    public $left;
+    public $token;
+    public $op;
+    public $right;
+
+    function __construct($left,$op,$right) {
+        $this->op=$op;
+        $this->token=$token;
+        $this->left=$left;
+        $this->right=$right;
+    }
+}
+
+class Num extends AST{
+    public $left;
+    public $token;
+    public $right;
+    function __construct($token) {
+        $this->op=$token->type;
+        $this->value=$token->value;
+    }
+}
+
+class Compound extends AST{
+    public $children;
+    function __construct(){
+        $this->children=[];
+    }
+}
+
+class Assign extends AST{
+    public $left;
+    public $op;
+    public $token;
+    public $right;
+    function __construct($left,$op,$right){
+        $this->left=$left;
+        $this->token=$op;
+        $this->op=$op;
+        $this->right=$right;
+    }
+}
+
+class Variable extends AST{
+    public $op;
+    public $value;
+    function __construct($token){
+        $this->op=$token->type;
+        $this->value=$token->value;
+    }
+}
+
+class Boolean extends AST{
+    public $value;
+    public $type;
+    function __construct($token){
+        $this->value=$token->value;
+        $this->op=$token->type;
+    }
+}
+
+class Semi extends AST{
+    public $left;
+    public $right;
+    public $op;
+    function __construct($left,$right,$op){
+        $this->left=$left;
+        $this->right=$right;
+        $this->op=$op;
+    }
+}
+
+class Not extends AST{
+    public $op;
+    public $ap;
+
+    function __construct($node){
+        $this->op="NOT";
+        $this->ap=node;
+    }
+}
+
+class BoolOp extends AST{
+    public $left;
+    public $right;
+    public $op;
+
+    function __construct($left,$right,$op){
+        $this->left=$left;
+        $this->right=$right;
+        $this->op=$op;
+    }
+}
+
+class Skip extends AST{
+    public $type;
+    public $value;
+    function __construct($token){
+        $this->value=$token->value;
+        $this->op=$token->type;
+    }
+}
+
+class NoOp extends AST{
+
+}
+
+class If_condition extends AST{
+    public $if_true;
+    public $if_false;
+    public $condition;
+    public $op;
+    function __construct($condition,$if_true,$if_false){
+        $this->condition=$condition;
+        $this->if_true=$if_true;
+        $this->if_false=$if_false;
+        $this->op="if";
+    }
+}
+
+class While_condition extends AST{
+    public $condition;
+    public $while_true;
+    public $while_false;
+    function __construct($condition,$while_true,$while_false){
+        $this->condition=$condition;
+        $this->while_true=$while_true;
+        $this->while_false=$while_false;
+        $this->op="while";
+    }
+}
+
 // echo get($Reserved_Keywords['if'],'nope')->toprint();
 // $foo= new Token("asd","adda");
 // $foo->toprint();
