@@ -470,8 +470,36 @@ class Parser{
             $this->current_token=$this->lexer->get_next_token();
             $node=new BoolOp($node,$this->arith_expression);
         }
-        return node;
+        return $node;
     }
+    function boolean_parse(){
+        return $this->boolean_expression();
+    }
+    function statement_term(){
+        $node=$this->boolean_expression();
+        if($this->current_token->type==Constants::ASSIGN){
+            $type_name=$this->current_token->type;
+            $this->current_token=$this->lexer->get_next_token();
+            $node=new Assign($node,$this->boolean_expression(),$type_name);
+        }
+    }
+
+    function statement_expression(){
+        $node=$this->statement_term();
+        while($this->current_token->type==Constants::SEMI){
+            $type_name=$this->current_token->type;
+            $this->current_token=$this->lexer->get_next_token();
+            $node= new Semi($node,$this->statement_term(),$type_name);
+
+        }
+        return $node;
+    }
+
+    function statement_parse(){
+        return $this->statement_expression();
+    }
+
+
 
 }
 
