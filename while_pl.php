@@ -535,7 +535,171 @@ function to_print($node){
     }
 }
 
+class SubString{
+    public $string;
+    
+    function __construct($string){
+        $this->string=$string;
+    }
 
+    function subtract($other){
+        return str_ireplace($this->string, $other->string, "", 1);
+    }
+}
+
+function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
+    if($node->op == Constants::INTEGER || $node->op == Constants::TRUE || $node->op == Constants::FALSE){
+        return $node->value;
+    }
+    else if($node->op==Constants::ID){
+        if(array_key_exists($node->value,$state)){
+            return state[$node->value];
+        }
+        else{
+            $state[$node->value]=0;
+            return 0;
+
+        }
+    }
+    else if($node->op==Constants::SKIP){
+        $temp_variable=array_unique(variables);
+        
+    }
+
+
+
+
+
+    else if ($node->op)==Constants::PLUS{
+        return eval($node->left,$state,$variables,$immediate_state,$print_ss,$first_step)
+    }
+
+    else if ($node->op == Constants::MINUS){
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) - eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if($node->op == Constants::MUL){
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) * eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if ($node->op == Constants::NOT){
+        return !eval($node->ap, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if ($node->op == Constants::EQUAL){
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) == eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if ($node->op == Constants::LESSTHAN){
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) < eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if ($node->op == Constants::AND){
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) && eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if ($node->op == Constants::OR) {
+        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) || eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if($node->op == Constants::WHILE) {
+        $condition=$node->conditions;
+        $while_true = $node->while_true;
+        $while_false=$node->while_false;
+        $break_while = 0;
+        
+        while(eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step)){
+            $break_while+=1;
+            if($break_while>=10000){
+                break;
+            }
+            $temp_variable= array_unique($variables);
+            $temp_state=clone $state;
+            $temp_state = 
+
+        }
+    }
+}
+
+class Intepreter{
+    public $state;
+    public $ast;
+    public $variables;
+    public $immediate_state;
+    public $print_ss;
+    public $first_step;
+    
+    function __construct($parser){
+        $this->string=$parser->state;
+        $this->ast=parser.statement_parse();
+        $this->variables=[];
+        $this->immediate_state=[];
+        $this->print_ss=[];
+        $this->first_step=to_print($this->ast);
+    }
+
+    function visit(){
+        return eval($this->ast,$this->state,$this->variables,$this->immediate_state,$this->print_ss,$this->first_step);
+    }
+
+    function definition($operand){
+        $cases = [
+            "PLUS" => "+",
+            "MINUS" => "-",
+            "MUL" => "*";
+            "EQUAL" => "=",
+            "LESSTHAN" => "<",
+            "AND" => '∨',
+            'OR' => '∧',
+            'ASSIGN' => ':=',
+            'SEMI' => ';',
+            'NOT' => '¬'
+        ];
+        return cases[$operand];
+    }
+
+
+
+
+    $contents=[];
+    $line = trim(fgets(STDIN));
+    array_push($contents,$line);
+    $user_input = join(" ",$contents);
+    $user_input = join(" ",explode(" ",$user_input));
+    $lexer = new Lexer(user_input);
+    $parser = new Parser(lexer);
+    $interpreter = new Interpreter(parser);
+    $interpreter->visit();
+    $steps = $interpreter->print_ss;
+    $steps_temp;
+    $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($steps));
+    foreach($it as $v) {
+        array_push($steps_temp,$v); //https://stackoverflow.com/questions/1319903/how-to-flatten-a-multidimensional-array
+      }
+    $steps_temp=$steps;
+    $states = $interpreter->immediate_state;
+
+    if substr($user_input,0,5) == 'skip;' or substr($user_input,0,6) == 'skip ;'{
+        $steps=array_shift($steps);
+        $states=array_shift($states)
+    }
+    $steps[count($steps)-1] = 'skip'
+    if (count($states) > 10000){
+        $states = array_slice($states,0,10000);
+        $steps = array_slice($steps,0,10000);
+    }
+    if count(states) == 1 && states[0] == [] && substr($user_input,0,4) == 'skip'{
+        echo '';
+    }
+    else{
+
+        for($i=0;$i<count(states);$i++){
+            $output_string=[];
+            sort($states[$i]);
+            for($key=0;$key<count(states);$key++){
+                array_push($output_string,key.' → '.str($states[$i][$key]);
+            }
+            $state_string=join('',array['{', join(', ',output_string), '}']);
+            $step_string = ' '.join(" ",array['⇒', $steps[i]]);
+            echo $step_string.", ".$state_string;
+        }
+       
+    }
+
+}
 
 
 // echo get($Reserved_Keywords['if'],'nope')->toprint();
