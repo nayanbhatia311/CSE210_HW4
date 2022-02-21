@@ -563,6 +563,49 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
     }
     else if($node->op==Constants::SKIP){
         $temp_variable=array_unique(variables);
+        $temp_state = clone state;
+        for($i=0;$i<count(temp_variable);$i++){
+            temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+        }
+
+        array_push($immediate_state,$temp_state);
+        $temp_step = new SubString(str(to_print($node)));
+        $temp_result=new Substring($first_step)->subtract($temp_step);
+
+        array_push($print_ss,array[SubString(SubString('; ')->subtract($temp_result)]));
+        
+    }
+    else if($node->op==Constants::SEMI){
+        eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step);
+        $temp_variable=array_unique($variables);
+        $temp_state = clone $state;
+        for($i=0;$i<count($temp_variable);$i++){
+            $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
+        }
+
+        array_push($immediate_state,$temp_state);
+        $temp_step = new SubString(str(to_print($node)));
+        $temp_result=new Substring($first_step)->subtract($temp_step);
+        $first_step=array[new SubString(SubString('; ')->subtract($temp_result)]
+        array_push($print_ss,$first_step);
+        eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+    }
+    else if($node->op==Constants::ASSIGN){
+        $var=$node->left->value;
+        push_array($variables,$var);
+        
+        $state[$var] = eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        $temp_variable=array_unique($variables);
+        $temp_state = clone $state;
+        for($i=0;$i<count($temp_variable);$i++){
+            $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
+        }
+
+        array_push($immediate_state,$temp_state);
+        $temp_step = new SubString(str(to_print($node)));
+        $temp_result=new Substring($first_step)->subtract($temp_step);
+        $first_step=array['skip; '.SubString(SubString('; ')->subtract($temp_result)]
+        array_push(print_ss($first_step));
         
     }
 
@@ -606,10 +649,76 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
             if($break_while>=10000){
                 break;
             }
-            $temp_variable= array_unique($variables);
-            $temp_state=clone $state;
-            $temp_state = 
+            $temp_variable=array_unique(variables);
+            $temp_state = clone state;
+            for($i=0;$i<count(temp_variable);$i++){
+                temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+            }
+            array_push($immediate_state,$temp_state);
+            $first_step=str_replace(to_print($node),str(to_print($node->while_true))."; ".to_print($node),$first_step);
+            push_array($print_ss,array($first_step));
+            eval($while_true, $state, $variables, $immediate_state, $print_ss, $first_step);
+            $temp_variable=array_unique(variables);
+            $temp_state = clone state;
+            for($i=0;$i<count(temp_variable);$i++){
+                temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+            }
+            array_push($immediate_state,$temp_state);
+            $temp_step=new SubString(str(to_print($node->while_true)));
+            $temp_var=new Substring(new Substring($first_step)->subtract(temp_step))->subtract(new Substring("; "))
+            array_push($print_ss,array($temp_var));
+            $first_step= new SubString(new SubString($first_step)->subtract($temp_step))->subtract(new Substring("; "));
 
+        }
+        $temp_variable=array_unique($variables);
+        $temp_state = clone $state;
+        for($i=0;$i<count($temp_variable);$i++){
+            $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
+        }
+
+        array_push($immediate_state,$temp_state);
+        $temp_step = new SubString(str(to_print($node)));
+        $temp_result=new Substring($first_step)->subtract($temp_step);
+        $first_step=array['skip; '.SubString(SubString('; ')->subtract($temp_result)]
+        array_push(print_ss($first_step));
+       
+
+        }
+        else if($node->op==Constants::IF){
+            $condition=$node->condition
+            $if_true=$node->if_true;
+            $if_false=$node->if_false;
+            if(eval($condition, $state, $variables, $immediate_state, $print_ss, $first_step)){
+                $temp_variable=array_unique($variables);
+                $temp_state = clone $state;
+                for($i=0;$i<count($temp_variable);$i++){
+                    $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
+                }
+        
+                array_push($immediate_state,$temp_state);
+                $temp_step = new SubString(str(to_print($node));
+                array_push($print_ss,str(to_print($node->if_true)).(new SubString($first_step)->subtract($temp_step));
+                $first_step=str(to_print($node->if_true)).(new Substring($first_step)->subtract($temp_step));
+                eval($if_true, $state, $variables, $immediate_state, $print_ss, $first_step);
+
+            }
+            else{
+                $temp_variable=array_unique($variables);
+                $temp_state = clone $state;
+                for($i=0;$i<count($temp_variable);$i++){
+                    $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
+                }
+        
+                array_push($immediate_state,$temp_state);
+                $temp_step = new SubString(str(to_print($node));
+                array_push($print_ss,str(to_print($node->if_false)).(new SubString($first_step)->subtract($temp_step));
+                $first_step=str(to_print($node->if_false)).(new Substring($first_step)->subtract($temp_step));
+                eval($if_false, $state, $variables, $immediate_state, $print_ss, $first_step);
+            }
+        
+        }
+        else{
+            throw new Exception("Error");
         }
     }
 }
