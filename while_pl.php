@@ -104,23 +104,23 @@ class Lexer {
         }
         return (int)result;
     }
-    function get(&$var, $default=null) {
+    function get($var, $default=null) {
         return isset($var) ? $var : $default;
     }
 
     function _id(){
         $result="";
         while($this->current_char!=NULL && ctype_alnum($this->current_char)){
-            $result=$result.$this.current_char;
+            $result=$result.$this->current_char;
             $this->advance();
         }
-        $token= get($Reserved_Keywords[result],new Token(Constants::ID,result));
+        $token= $this->get($Reserved_Keywords[$result],new Token(Constants::ID,$result));
         return $token;
     }
 
     function get_next_token(){
         while($this->current_char!=NULL){
-            if(IntlChar::isspace($this->current_char)){
+            if(IntlChar::isspace($this->current_char)){ //sudo apt-get install php-intl
                 $this->skip_whitespace();
                 continue;
             }
@@ -347,7 +347,9 @@ class Parser{
     public $lexer;
     public $state;
     public $current_token;
-    function __construct(lexer){
+    public $token;
+    public $node;
+    function __construct($lexer){
         $this->lexer=$lexer;
         $this->state=$lexer->state;
         $this->current_token=$lexer->get_next_token();
@@ -356,8 +358,7 @@ class Parser{
         throw new Exception('Invalid syntax');
     }
     function factor(){
-        public $token = $this->current_token;
-        public $node;
+        
         if($token->type==Constants::MINUS){
             $this->current_token = $this->lexer->get_next_token();
             $token=$this->current_token;
@@ -401,7 +402,7 @@ class Parser{
         else if($token->type==Constants::SKIP){
             $node=new Skip(token);
         }
-        else if($token->type==Constants::While){
+        else if($token->type==Constants::WHILE){
             $this->current_token=$this->lexer->get_next_token();
             $condition=$this->boolean_expression();
             $while_false=new Skip(new Token('skip','skip'));
@@ -414,7 +415,7 @@ class Parser{
                     $while_true=$this->statement_term();
                 }
             }
-            return new While($condition,$while_true,$while_false);
+            return new While_condition($condition,$while_true,$while_false);
         }
         else if($token->type==Constants::IF){
             $this->current_token=$this->lexer->get_next_token();
@@ -432,7 +433,7 @@ class Parser{
         }
 
         else {
-            $this->syntax_error();
+            $this->error();
         }
 
         $this->current_token=$this->lexer->get_next_token();
@@ -471,6 +472,15 @@ class Parser{
             $node=new BoolOp($node,$this->arith_expression);
         }
         return $node;
+    }
+    
+    function boolean_expression(){
+    	$node=$this->boolean_term();
+    	while($this->current_token->type == Constants::AND || $this->current_token->type==Constants::OR){
+    		$type_name=$this->current_token->type;
+    		$this->current_token=$this->lexer->get_next_token();
+    		$node = new BinOp($node,$this->boolean_term(),$type_name);
+    	}
     }
     function boolean_parse(){
         return $this->boolean_expression();
@@ -547,7 +557,7 @@ class SubString{
     }
 }
 
-function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
+function evaluate($ast, $state, $variable, $immediate_state, $print_ss, $first_step){
     if($node->op == Constants::INTEGER || $node->op == Constants::TRUE || $node->op == Constants::FALSE){
         return $node->value;
     }
@@ -565,18 +575,21 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
         $temp_variable=array_unique(variables);
         $temp_state = clone state;
         for($i=0;$i<count(temp_variable);$i++){
-            temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+            $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
         }
 
         array_push($immediate_state,$temp_state);
         $temp_step = new SubString(str(to_print($node)));
-        $temp_result=new Substring($first_step)->subtract($temp_step);
+        $sub_tempstep_first_step=new Substring($first_step);
+        $temp_result=$sub_tempstep_first_step->subtract($temp_step);
+        $semi_colon=new Substring("; ");
+        $temp_result=$temp_result->subtract($semi_colon);
 
-        array_push($print_ss,array[SubString(SubString('; ')->subtract($temp_result)]));
+        array_push($print_ss,array(new SubString($semi_colon->subtract($temp_result))));
         
     }
     else if($node->op==Constants::SEMI){
-        eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step);
+        evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step);
         $temp_variable=array_unique($variables);
         $temp_state = clone $state;
         for($i=0;$i<count($temp_variable);$i++){
@@ -585,16 +598,18 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
 
         array_push($immediate_state,$temp_state);
         $temp_step = new SubString(str(to_print($node)));
-        $temp_result=new Substring($first_step)->subtract($temp_step);
-        $first_step=array[new SubString(SubString('; ')->subtract($temp_result)]
+        $first_step_substring=new Substring($first_step);
+        $temp_result=$first_step_substring->subtract($temp_step);
+        $semi_colon=new Substring("; ");
+        $first_step=array($semi_colon->subtract($temp_result));
         array_push($print_ss,$first_step);
-        eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if($node->op==Constants::ASSIGN){
         $var=$node->left->value;
         push_array($variables,$var);
         
-        $state[$var] = eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        $state[$var] = evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
         $temp_variable=array_unique($variables);
         $temp_state = clone $state;
         for($i=0;$i<count($temp_variable);$i++){
@@ -603,8 +618,11 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
 
         array_push($immediate_state,$temp_state);
         $temp_step = new SubString(str(to_print($node)));
-        $temp_result=new Substring($first_step)->subtract($temp_step);
-        $first_step=array['skip; '.SubString(SubString('; ')->subtract($temp_result)]
+        $semi_colon=new Substring("; ");
+        $first_step_substring=new Substring($first_step);
+        $temp_result=$first_step_substring->subtract($temp_step);
+        $semi_colon_temp_subtract=new SubString($semi_colon->subtract($temp_result));
+        $first_step=array('skip; '.semi_colon_temp_subtract);
         array_push(print_ss($first_step));
         
     }
@@ -613,30 +631,30 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
 
 
 
-    else if ($node->op)==Constants::PLUS{
-        return eval($node->left,$state,$variables,$immediate_state,$print_ss,$first_step)
+    else if ($node->op==Constants::PLUS){
+        return evaluate($node->left,$state,$variables,$immediate_state,$print_ss,$first_step);
     }
 
     else if ($node->op == Constants::MINUS){
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) - eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) - evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if($node->op == Constants::MUL){
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) * eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) * evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if ($node->op == Constants::NOT){
-        return !eval($node->ap, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return !evaluate($node->ap, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if ($node->op == Constants::EQUAL){
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) == eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) == evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if ($node->op == Constants::LESSTHAN){
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) < eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) < evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if ($node->op == Constants::AND){
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) && eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) && evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if ($node->op == Constants::OR) {
-        return eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) || eval($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
+        return evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step) || evaluate($node->right, $state, $variables, $immediate_state, $print_ss, $first_step);
     }
     else if($node->op == Constants::WHILE) {
         $condition=$node->conditions;
@@ -644,7 +662,7 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
         $while_false=$node->while_false;
         $break_while = 0;
         
-        while(eval($node->left, $state, $variables, $immediate_state, $print_ss, $first_step)){
+        while(evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step)){
             $break_while+=1;
             if($break_while>=10000){
                 break;
@@ -652,22 +670,28 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
             $temp_variable=array_unique(variables);
             $temp_state = clone state;
             for($i=0;$i<count(temp_variable);$i++){
-                temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+                $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
             }
             array_push($immediate_state,$temp_state);
             $first_step=str_replace(to_print($node),str(to_print($node->while_true))."; ".to_print($node),$first_step);
             push_array($print_ss,array($first_step));
-            eval($while_true, $state, $variables, $immediate_state, $print_ss, $first_step);
+            evaluate($while_true, $state, $variables, $immediate_state, $print_ss, $first_step);
             $temp_variable=array_unique(variables);
             $temp_state = clone state;
             for($i=0;$i<count(temp_variable);$i++){
-                temp_state[temp_variable[$i]]=temp_state[temp_variable[$i]];
+                $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
             }
             array_push($immediate_state,$temp_state);
             $temp_step=new SubString(str(to_print($node->while_true)));
-            $temp_var=new Substring(new Substring($first_step)->subtract(temp_step))->subtract(new Substring("; "))
+            $semi_colon=new Substring("; ");
+            $first_step_substring=new Substring($first_step);
+            $first_step_substring_temp_size=$first_step_substring->subtract($temp_step);
+            $temp_var=$first_step_substring_temp_size->subtract($semi_colon);
             array_push($print_ss,array($temp_var));
-            $first_step= new SubString(new SubString($first_step)->subtract($temp_step))->subtract(new Substring("; "));
+            
+            $first_step_substring=new SubString($first_step);
+            $first_step_substring_temp_size=new Substring($first_step_substring->subtract($temp_step));
+            $first_step= $first_step_substring_temp_size->subtract($semi_colon);
 
         }
         $temp_variable=array_unique($variables);
@@ -678,17 +702,20 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
 
         array_push($immediate_state,$temp_state);
         $temp_step = new SubString(str(to_print($node)));
-        $temp_result=new Substring($first_step)->subtract($temp_step);
-        $first_step=array['skip; '.SubString(SubString('; ')->subtract($temp_result)]
+        $first_step_substring=new SubString($first_step);
+        $temp_result=$first_step_substring->subtract($temp_step);
+        $semi_colon=new SubString('; ');
+        
+        $first_step=array('skip; '.$semi_colon->subtract($temp_result));
         array_push(print_ss($first_step));
        
 
         }
         else if($node->op==Constants::IF){
-            $condition=$node->condition
+            $condition=$node->condition;
             $if_true=$node->if_true;
             $if_false=$node->if_false;
-            if(eval($condition, $state, $variables, $immediate_state, $print_ss, $first_step)){
+            if(evaluate($condition, $state, $variables, $immediate_state, $print_ss, $first_step)){
                 $temp_variable=array_unique($variables);
                 $temp_state = clone $state;
                 for($i=0;$i<count($temp_variable);$i++){
@@ -696,10 +723,13 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
                 }
         
                 array_push($immediate_state,$temp_state);
-                $temp_step = new SubString(str(to_print($node));
-                array_push($print_ss,str(to_print($node->if_true)).(new SubString($first_step)->subtract($temp_step));
-                $first_step=str(to_print($node->if_true)).(new Substring($first_step)->subtract($temp_step));
-                eval($if_true, $state, $variables, $immediate_state, $print_ss, $first_step);
+                
+                $temp_step = new SubString(str(to_print($node)));
+                $first_step_substring= new SubString($first_step);
+                $first_step_subtract_temp=$first_step_substring->subtract($temp_step);
+                array_push($print_ss,str(to_print($node->if_true)).$first_step_subtract_temp);
+                $first_step=str(to_print($node->if_true)).($first_step_substring->subtract($temp_step));
+                evaluate($if_true, $state, $variables, $immediate_state, $print_ss, $first_step);
 
             }
             else{
@@ -710,20 +740,23 @@ function eval($ast,$state,$variable,$immediate_state,$print_ss,$first_step){
                 }
         
                 array_push($immediate_state,$temp_state);
-                $temp_step = new SubString(str(to_print($node));
-                array_push($print_ss,str(to_print($node->if_false)).(new SubString($first_step)->subtract($temp_step));
-                $first_step=str(to_print($node->if_false)).(new Substring($first_step)->subtract($temp_step));
-                eval($if_false, $state, $variables, $immediate_state, $print_ss, $first_step);
+                $temp_step = new SubString(str(to_print($node)));
+                $first_step_substring= new SubString($first_step);
+                $first_step_subtract_temp=$first_step_substring->subtract($temp_step);
+                array_push($print_ss,str(to_print($node->if_false)).$first_step_subtract_temp);
+                $first_step_subtract_temp=$first_step_substring->subtract($temp_step);
+                $first_step=str(to_print($node->if_false)).$first_step_subtract_temp;
+                evaluate($if_false, $state, $variables, $immediate_state, $print_ss, $first_step);
             }
         
         }
         else{
             throw new Exception("Error");
         }
-    }
 }
 
-class Intepreter{
+
+class Interpreter{
     public $state;
     public $ast;
     public $variables;
@@ -733,7 +766,7 @@ class Intepreter{
     
     function __construct($parser){
         $this->string=$parser->state;
-        $this->ast=parser.statement_parse();
+        $this->ast=$parser->statement_parse();
         $this->variables=[];
         $this->immediate_state=[];
         $this->print_ss=[];
@@ -741,14 +774,14 @@ class Intepreter{
     }
 
     function visit(){
-        return eval($this->ast,$this->state,$this->variables,$this->immediate_state,$this->print_ss,$this->first_step);
+        return evaluate($this->ast,$this->state,$this->variables,$this->immediate_state,$this->print_ss,$this->first_step);
     }
 
     function definition($operand){
         $cases = [
             "PLUS" => "+",
             "MINUS" => "-",
-            "MUL" => "*";
+            "MUL" => "*",
             "EQUAL" => "=",
             "LESSTHAN" => "<",
             "AND" => '∨',
@@ -759,6 +792,7 @@ class Intepreter{
         ];
         return cases[$operand];
     }
+}
 
 
 
@@ -768,9 +802,9 @@ class Intepreter{
     array_push($contents,$line);
     $user_input = join(" ",$contents);
     $user_input = join(" ",explode(" ",$user_input));
-    $lexer = new Lexer(user_input);
-    $parser = new Parser(lexer);
-    $interpreter = new Interpreter(parser);
+    $lexer = new Lexer($user_input);
+    $parser = new Parser($lexer);
+    $interpreter = new Interpreter($parser);
     $interpreter->visit();
     $steps = $interpreter->print_ss;
     $steps_temp;
@@ -781,16 +815,16 @@ class Intepreter{
     $steps_temp=$steps;
     $states = $interpreter->immediate_state;
 
-    if substr($user_input,0,5) == 'skip;' or substr($user_input,0,6) == 'skip ;'{
+    if(substr($user_input,0,5) == 'skip;' || substr($user_input,0,6) == 'skip ;'){
         $steps=array_shift($steps);
-        $states=array_shift($states)
+        $states=array_shift($states);
     }
-    $steps[count($steps)-1] = 'skip'
+    $steps[count($steps)-1] = 'skip';
     if (count($states) > 10000){
         $states = array_slice($states,0,10000);
         $steps = array_slice($steps,0,10000);
     }
-    if count(states) == 1 && states[0] == [] && substr($user_input,0,4) == 'skip'{
+    if(count(states) == 1 && states[0] == [] && substr($user_input,0,4) == 'skip'){
         echo '';
     }
     else{
@@ -799,16 +833,16 @@ class Intepreter{
             $output_string=[];
             sort($states[$i]);
             for($key=0;$key<count(states);$key++){
-                array_push($output_string,key.' → '.str($states[$i][$key]);
+                array_push($output_string,str(key).' → '.str($states[$i][$key]));
             }
-            $state_string=join('',array['{', join(', ',output_string), '}']);
-            $step_string = ' '.join(" ",array['⇒', $steps[i]]);
+            $state_string=join('',array('{', join(', ',output_string), '}'));
+            $step_string = ' '.join(" ",array('⇒', $steps[i]));
             echo $step_string.", ".$state_string;
         }
        
     }
 
-}
+
 
 
 // echo get($Reserved_Keywords['if'],'nope')->toprint();
