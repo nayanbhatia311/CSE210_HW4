@@ -15,6 +15,22 @@ function definitions($operand){
     return $cases[$operand];
 }
 
+class Token{
+    public $type;
+    public $value;
+    function __construct($type, $value) {
+        $this->type=$type;
+        $this->value=$value;
+    }
+    public function __toString(){
+    	return "Token(".$this->type.",".$this->value.")";
+    }
+
+    public function toprint() {
+        echo "Token(".$this->type.",".$this->value.")";
+    }
+}
+
 $Reserved_Keywords = [
         "if" => new Token("if","if"),
         "then" => new Token("then","then"),
@@ -31,8 +47,8 @@ class Constants{
     const MINUS = "MINUS";
     const MUL = "MUL";
     const DIV = "DIV";
-    const LPAREN = "LPAREN";
-    const RPAREN = "RPAREN";
+    const LPAREN = "(";
+    const RPAREN = ")";
     const ID = "ID";
     const ASSIGN = "ASSIGN";
     const SEMI = "SEMI";
@@ -43,30 +59,20 @@ class Constants{
     const AND = "AND";
     const OR = "OR";
     const NOT = "NOT";
-    const IF = "IF";
-    const THEN = "THEN";
-    const ELSE = "ELSE"; 
-    const LBRACE = "LBRACE";
-    const RBRACE = "RBRACE";
-    const WHILE = "WHILE";
-    const DO = "DO";
-    const TRUE = "TRUE";
-    const FALSE = "FALSE";
-    const SKIP = "SKIP";
+    const IF = "if";
+    const THEN = "then";
+    const ELSE = "else"; 
+    const LBRACE = "{";
+    const RBRACE = "}";
+    const WHILE = "while";
+    const DO = "do";
+    const TRUE = "true";
+    const FALSE = "false";
+    const SKIP = "skip";
 }
 
-class Token{
-    public $type;
-    public $value;
-    function __construct($type, $value) {
-        $this->type=$type;
-        $this->value=$value;
-    }
 
-    public function toprint() {
-        echo "Token(".$this->type.",".$this->value.")";
-    }
-}
+
 
 class Lexer {
     public $text;
@@ -80,8 +86,10 @@ class Lexer {
         $this->pos=0;
         $this->current_char=$this->text[$this->pos];
     }
+    
 
     function error() {
+    	echo var_dump($this->pos)."this pos\n".$this->current_char."this current_char";
         throw new Exception('Invalid syntax');
     }
 
@@ -200,6 +208,7 @@ class Lexer {
                 return new Token(Constants::AND,"∨");
             }
             if($this->current_char=="¬"){
+           	echo "here";
                 $this->advance();
                 return new Token(Constants::NOT,"¬");
             }
@@ -232,7 +241,7 @@ class BinOp extends AST{
 
     function __construct($left,$op,$right) {
         $this->op=$op;
-        $this->token=$token;
+        $this->token=$op;
         $this->left=$left;
         $this->right=$right;
     }
@@ -390,12 +399,12 @@ class Parser{
         }
         else if($token->type==Constants::NOT){
             $this->current_token=$this->lexer->get_next_token();
-            if($this.current_token==Constants::LPAREN){
+            if($this->current_token==Constants::LPAREN){
                 $this->current_token=$this->lexer->get_next_token();
                 $node=$this->boolean_expression();
             }
             else if($this->current_token->type==Constants::TRUE || $this->current_token->type==Constants::FALSE){
-                $node=new Boolean(token);
+                $node=new Boolean($token);
             }
             else{
                 $this->error();
@@ -415,6 +424,10 @@ class Parser{
         else if($token->type==Constants::LBRACE){
             $this->current_token=$this->lexer->get_next_token();
             $node=$this->statement_expression();
+        }
+         else if($token->type==Constants::RBRACE){
+            $this->current_token=$this->lexer->get_next_token();
+          
         }
         else if($token->type==Constants::SKIP){
             $node=new Skip($token);
@@ -460,9 +473,9 @@ class Parser{
     function arith_term(){
         $node=$this->factor();
         while($this->current_token->type==Constants::MUL){
-            $type_name=$this->current_token->Type;
+            $type_name=$this->current_token->type;
             $this->current_token=$this->lexer->get_next_token();
-            $node=new BinOp($node,$this->factor(),$type_name);
+            $node=new BinOp($node,$type_name,$this->factor());
         }
         return $node;
     }
@@ -472,7 +485,7 @@ class Parser{
         while($this->current_token->type==Constants::PLUS || $this->current_token->type==Constants::MINUS){
             $type_name=$this->current_token->type;
             $this->current_token=$this->lexer->get_next_token();
-            $node= new BinOp($node,$this->arith_term(),$type_name);
+            $node= new BinOp($node,$type_name,$this->arith_term());
         }
         return $node;
     }
@@ -486,7 +499,7 @@ class Parser{
         if($this->current_token->type==Constants::EQUAL || $this->current_token==Constants::LESSTHAN){
             $type_name=$this->current_token->type;
             $this->current_token=$this->lexer->get_next_token();
-            $node=new BoolOp($node,$this->arith_expression);
+            $node=new BoolOp($node,$tpe_name,$this->arith_expression);
         }
         return $node;
     }
@@ -496,7 +509,7 @@ class Parser{
     	while($this->current_token->type == Constants::AND || $this->current_token->type==Constants::OR){
     		$type_name=$this->current_token->type;
     		$this->current_token=$this->lexer->get_next_token();
-    		$node = new BinOp($node,$this->boolean_term(),$type_name);
+    		$node = new BinOp($node,$type_name,$this->boolean_term());
     	}
         return $node;
     }
@@ -565,16 +578,22 @@ function to_print($node){
 }
 
 class SubString{
-    public $string;
+    public $strings;
     
-    function __construct($string){
-        $this->strings=$string;
+    function str_replace_first($search, $replace, $subject){
+    	
+    	$search = '/'.preg_quote($search, '/').'/';
+    	return preg_replace($search, $replace, $subject, 1);
+    }
+
+    function __construct($strings){
+        $this->strings=$strings;
     }
 
     function subtract($other){
         $empty_str = "";
         $one = 1;
-        return str_ireplace($this->strings, $other->strings, $empty_str, $one);
+        return $this->str_replace_first($other->strings, $empty_str, $this->strings);
     }
 }
 
@@ -585,7 +604,7 @@ function evaluate($ast, &$state, &$variables, &$immediate_state, &$print_ss, &$f
     }
     else if($node->op==Constants::ID){
         if(array_key_exists($node->value,$state)){
-            return state[$node->value];
+            return $state[$node->value];
         }
         else{
             $state[$node->value]=0;
@@ -613,13 +632,13 @@ function evaluate($ast, &$state, &$variables, &$immediate_state, &$print_ss, &$f
     else if($node->op==Constants::SEMI){
         evaluate($node->left, $state, $variables, $immediate_state, $print_ss, $first_step);
         $temp_variable=array_unique($variables);
-        $temp_state = clone $state;
+        $temp_state = $state;
         for($i=0;$i<count($temp_variable);$i++){
             $temp_state[$temp_variable[$i]]=$temp_state[$temp_variable[$i]];
         }
 
         array_push($immediate_state,$temp_state);
-        $temp_step = new SubString(str(to_print($node)));
+        $temp_step = new SubString(strval(to_print($node)));
         $first_step_substring=new Substring($first_step);
         $temp_result=$first_step_substring->subtract($temp_step);
         $semi_colon=new Substring("; ");
@@ -779,9 +798,9 @@ class Interpreter{
     public $immediate_state;
     public $print_ss;
     public $first_step;
-    
+    public $strings;
     function __construct($parser){
-        $this->string=$parser->state;
+        $this->strings=$parser->state;
         $this->ast=$parser->statement_parse();
         $this->variables=[];
         $this->immediate_state=$parser->state;
@@ -841,6 +860,7 @@ class Interpreter{
     }
 
 
+//print_r($contents);
 
 
 
