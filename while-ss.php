@@ -112,7 +112,7 @@ class Lexer {
         }
     }
 
-    function integer(){
+    function integer_function(){
         $result="";
         while($this->current_char!=NULL && IntlChar::isdigit($this->current_char)){
             $result=$result.$this->current_char;
@@ -144,7 +144,7 @@ class Lexer {
                 return $this->_id();
             }
             if(IntlChar::isdigit($this->current_char)){
-                return new Token(Constants::INTEGER,$this->integer());
+                return new Token(Constants::INTEGER,$this->integer_function());
             }
             if($this->current_char == ":" && $this->peek() == "="){
                 $this->advance();
@@ -156,23 +156,23 @@ class Lexer {
                 return new Token(Constants::SEMI,";");
             }
             if($this->current_char=="+"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::PLUS,"+");
             }
             if($this->current_char=="-"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::MINUS,"-");
             }
             if($this->current_char=="*"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::MUL,"*");
             }
             if($this->current_char=="/"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::DIV,"/");
             }
             if($this->current_char=="("){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::LPAREN,"(");
             }
             if($this->current_char==")"){
@@ -184,31 +184,31 @@ class Lexer {
                 return new Token(Constants::EQUAL,"=");
             }
             if($this->current_char=="<"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::LESSTHAN,"<");
             }
             if($this->current_char==">"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::GREATERTHAN,">");
             }
             if($this->current_char=="∧"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::AND,"∧");
             }
             if($this->current_char=="∨"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::AND,"∨");
             }
             if($this->current_char=="¬"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::NOT,"¬");
             }
             if($this->current_char=="{"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::LBRACE,"{");
             }
             if($this->current_char=="}"){
-                $this.advance();
+                $this->advance();
                 return new Token(Constants::RBRACE,"}");
             }
 
@@ -400,10 +400,10 @@ class Parser{
             else{
                 $this->error();
             }
-            $node=new Not(node);
+            $node=new Not($node);
         }
         else if($token->type==Constants::TRUE || $token->type==Constants::FALSE){
-            $node=new Boolean(token);
+            $node=new Boolean($token);
         }
         else if($token->type==Constants::LPAREN){
             $this->current_token=$this->lexer->get_next_token();
@@ -417,7 +417,7 @@ class Parser{
             $node=$this->statement_expression();
         }
         else if($token->type==Constants::SKIP){
-            $node=new Skip(token);
+            $node=new Skip($token);
         }
         else if($token->type==Constants::WHILE){
             $this->current_token=$this->lexer->get_next_token();
@@ -568,13 +568,13 @@ class SubString{
     public $string;
     
     function __construct($string){
-        $this->string=$string;
+        $this->strings=$string;
     }
 
     function subtract($other){
         $empty_str = "";
         $one = 1;
-        return str_ireplace($this->string, $other->string, $empty_str, $one);
+        return str_ireplace($this->strings, $other->strings, $empty_str, $one);
     }
 }
 
