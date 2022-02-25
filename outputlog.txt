@@ -1,0 +1,101 @@
+commit 354ce9fd2657990eac8aded52c54a05b235b8cdf
+Author: nayanbhatia311 <nayanbhatia.com@gmail.com>
+Date:   Fri Feb 25 13:17:15 2022 -0800
+
+    2 cases fail
+
+commit ee27ef41cb512c2e5ad3eac7650bc44585eb5cfb
+Author: nayanbhatia311 <nayanbhatia.com@gmail.com>
+Date:   Tue Feb 22 14:53:36 2022 -0800
+
+    fix potential bugs
+
+commit 424f8e59c51252b3d8ac664610e3e793545d17cc
+Author: nayanbhatia311 <nayanbhatia.com@gmail.com>
+Date:   Tue Feb 22 13:13:01 2022 -0800
+
+    2 test case working
+
+commit f7ac8a71ed238bcb7ada206e94b6c18688b44d51
+Author: nayanbhatia311 <nayanbhatia.com@gmail.com>
+Date:   Tue Feb 22 13:00:36 2022 -0800
+
+    fix bugs and add test and make files
+
+commit 5aa843d8ce739f5968abbf54c035d530e76de18b
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Sun Feb 20 18:32:53 2022 -0800
+
+    fix the interpreted bugs
+
+commit 10276986975469e53bfcdff3e88e007c0d030771
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Sun Feb 20 16:26:07 2022 -0800
+
+    implement print logic and refine parsing
+
+commit 049a5b387315f32b8308a513569772f3c183dfee
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Sun Feb 20 14:34:16 2022 -0800
+
+    add major changes
+
+commit 2f43f0e9483b10d7809a56f3d72504ca52ba1019
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 15:01:40 2022 -0800
+
+    debug minor bugs
+
+commit dc4d62132c3893cdbc73a0750f9d5a30c589ba3d
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 13:49:39 2022 -0800
+
+    implement helper function for output
+
+commit 86a07903e4bde7aa14e775fcc41d80cce9bae90c
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 13:27:09 2022 -0800
+
+    implement the parser class
+
+commit bf4f771a5283178e3c6d7feec430a32c1bda5d54
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 13:15:00 2022 -0800
+
+    implement additional parser functionality
+
+commit d036d2884a93e2c41ed946ca702e3e4d8833c172
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 12:50:37 2022 -0800
+
+    save progress
+
+commit 741e0fe6785c567ee7357c6cd9c5f61af6a7a334
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 10:53:23 2022 -0800
+
+    implement parser class
+
+commit 80d505c938fb59bbb321d2248fd304b8f35a9129
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 10:01:01 2022 -0800
+
+    complete lexer class
+
+commit 05c79d0fa08a7fe2bbbc4e46aa588074e1cc2a65
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 08:10:40 2022 -0800
+
+    modify Token class
+
+commit c8b29ae4b56d6c4131c786152f3edf7e7d54aae2
+Author: Nayan Bhatia <nayanbhatia.com@gmail.com>
+Date:   Thu Feb 17 07:33:28 2022 -0800
+
+    add constants
+
+commit 702f460c52413793d4dde2eb820335fb7e5401b7
+Author: Nayan Bhatia <41787379+nayanbhatia311@users.noreply.github.com>
+Date:   Thu Feb 17 07:03:50 2022 -0800
+
+    Initial commit
